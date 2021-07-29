@@ -69,7 +69,7 @@ ln -s /run/media media
 # TODO - be smarter about kernel version, but for now this is just in here
 # so ostree doesn't complain about the kernel when doing "ostree admin deploy"
 cp boot/vmlinuz-4.19.94-ti-r62 usr/lib/modules/4.19.94-ti-r62/vmlinuz
-cp /initrd.img-4.19.94-ti-r62 usr/lib/modules/4.19.94-ti-r62/initramfs.img
+cp boot/initrd.img-4.19.94-ti-r62 usr/lib/modules/4.19.94-ti-r62/initramfs.img
 
 cd /tmp
 
