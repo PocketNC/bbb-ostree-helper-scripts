@@ -132,7 +132,7 @@ cp ../../ostree/deploy/debian/deploy/*/boot/uEnv.txt .
 # Add ostree= argument to kernel cmdline arguments
 DEPLOY=$(echo ../../ostree/deploy/debian/deploy/*/ | sed 's,/$,,')
 ABS_DEPLOY=$(echo $DEPLOY | sed 's,../../,/,')
-sed "/^cmdline=/ s/\$/ ostree=$ABS_DEPLOY/" uEnv.txt
+sed -i "/^cmdline=/ s,\$, ostree=$ABS_DEPLOY," uEnv.txt
 
 ln -s $DEPLOY/boot/vmlinuz-4.19.94-ti-r62
 ln -s $DEPLOY/boot/initrd.img-4.19.94-ti-r62
