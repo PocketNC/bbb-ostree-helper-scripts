@@ -142,6 +142,8 @@ ln -s $DEPLOY/boot/config-4.19.94-ti-r62
 ln -s $DEPLOY/boot/SOC.sh
 ln -s $DEPLOY/boot/uboot
 
+cd /tmp
+
 umount $BUILDDIR
 kpartx -d $LOOP_DEV
 
