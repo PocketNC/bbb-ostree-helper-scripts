@@ -16,7 +16,7 @@ kpartx -av $LOOP_DEV
 BUILDDIR=/mnt/ostree_rootfs
 mkdir -p $BUILDDIR
 
-mount /dev/mapper/$LOOP_NUMp1 $BUILDDIR
+mount /dev/mapper/${LOOP_NUM}p1 $BUILDDIR
 
 cd ${BUILDDIR}
 
@@ -115,6 +115,6 @@ ostree admin --sysroot="${OSTREE_SYSROOT}" deploy --os=${OSTREE_OS} "${kargs[@]}
 umount $BUILDDIR
 kpartx -d $LOOP_DEV
 
-xz $IMG
-
-cp ${IMG}.xz /host
+#xz $IMG
+#cp ${IMG}.xz /host
+cp ${IMG} /host
