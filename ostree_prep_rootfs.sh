@@ -112,6 +112,36 @@ uuid=$(uuid)
 kargs=(--karg=root=UUID=${uuid} --karg=rw --karg=splash --karg=plymouth.ignore-serial-consoles --karg=quiet)
 ostree admin --sysroot="${OSTREE_SYSROOT}" deploy --os=${OSTREE_OS} "${kargs[@]}" ${OSTREE_OS}:${OSTREE_BRANCH_DEPLOY}
 
+# TODO - * is used below, but is assuming only one folder/file will match because the repo only has a single commit/deployment
+# Eventually we won't be able to make that assumption, but taking a shortcut for now. How do we figure out what deployment
+# is active?
+
+cd $BUILDDIR/boot
+ln -s loader/uEnv.txt
+ln -s loader/vmlinuz-4.19.94-ti-r62
+ln -s loader/initrd.img-4.19.94-ti-r62
+ln -s loader/dtbs
+ln -s loader/System.map-4.19.94-ti-r62
+ln -s loader/config-4.19.94-ti-r62
+ln -s loader/SOC.sh
+ln -s loader/uboot
+
+cd $BUILDDIR/boot/loader
+cp ../../ostree/deploy/debian/deploy/*/boot/uEnv.txt .
+
+# Add ostree= argument to kernel cmdline arguments
+DEPLOY=$(echo ../../ostree/deploy/debian/deploy/*/ | sed 's,/$,,')
+ABS_DEPLOY=$(echo $DEPLOY | sed 's,../../,/,')
+sed "/^cmdline=/ s/\$/ ostree=$ABS_DEPLOY/" uEnv.txt
+
+ln -s $DEPLOY/boot/vmlinuz-4.19.94-ti-r62
+ln -s $DEPLOY/boot/initrd.img-4.19.94-ti-r62
+ln -s $DEPLOY/boot/dtbs
+ln -s $DEPLOY/boot/System.map-4.19.94-ti-r62
+ln -s $DEPLOY/boot/config-4.19.94-ti-r62
+ln -s $DEPLOY/boot/SOC.sh
+ln -s $DEPLOY/boot/uboot
+
 umount $BUILDDIR
 kpartx -d $LOOP_DEV
 
