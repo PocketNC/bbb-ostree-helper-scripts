@@ -151,7 +151,11 @@ ln -s $DEPLOY/boot/System.map-4.19.94-ti-r62
 ln -s $DEPLOY/boot/config-4.19.94-ti-r62
 ln -s $DEPLOY/boot/SOC.sh
 ln -s $DEPLOY/boot/uboot
+
+# So U-Boot can find firmware
+cd ${BUILDDIR}
 ln -s $DEPLOY/lib
+ln -s $DEPLOY/usr
 
 cd /tmp
 
