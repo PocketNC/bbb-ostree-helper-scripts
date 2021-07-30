@@ -71,6 +71,16 @@ ln -s /run/media media
 cp boot/vmlinuz-4.19.94-ti-r62 usr/lib/modules/4.19.94-ti-r62/vmlinuz
 cp boot/initrd.img-4.19.94-ti-r62 usr/lib/modules/4.19.94-ti-r62/initramfs.img
 
+cd /tmp 
+mkdir /tmp/initramfs
+cd /tmp/initramfs
+gunzip -c ${BUILDDIR}/boot/initrd.img-4.19.94-ti-r62 | cpio -i
+
+cp /tmp/bbb-ostree-helper-scripts/switchroot.sh /tmp/initramfs/scripts/init-bottom
+echo "/scripts/init-bottom/switchroot.sh" >> /tmp/initramfs/scripts/init-bottom/ORDER
+
+find . | cpio -H newc -o | gzip -9 > ${BUILDDIR}/boot/initrd.img-4.19.94-ti-r62
+
 cd /tmp
 
 mkdir repo
@@ -141,6 +151,7 @@ ln -s $DEPLOY/boot/System.map-4.19.94-ti-r62
 ln -s $DEPLOY/boot/config-4.19.94-ti-r62
 ln -s $DEPLOY/boot/SOC.sh
 ln -s $DEPLOY/boot/uboot
+ln -s $DEPLOY/lib
 
 cd /tmp
 
