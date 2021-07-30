@@ -142,6 +142,7 @@ cp ../../ostree/deploy/debian/deploy/*/boot/uEnv.txt .
 # Add ostree= argument to kernel cmdline arguments
 DEPLOY=$(echo ../../ostree/deploy/debian/deploy/*/ | sed 's,/$,,')
 ABS_DEPLOY=$(echo $DEPLOY | sed 's,../../,/,')
+REL_DEPLOY=$(echo $DEPLOY | sed 's,../../,,')
 sed -i "/^cmdline=/ s,\$, ostree=$ABS_DEPLOY," uEnv.txt
 
 ln -s $DEPLOY/boot/vmlinuz-4.19.94-ti-r62
@@ -154,8 +155,8 @@ ln -s $DEPLOY/boot/uboot
 
 # So U-Boot can find firmware
 cd ${BUILDDIR}
-ln -s $DEPLOY/lib
-ln -s $DEPLOY/usr
+ln -s $REL_DEPLOY/lib
+ln -s $REL_DEPLOY/usr
 
 cd /tmp
 
