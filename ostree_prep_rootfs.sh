@@ -77,7 +77,7 @@ cd /tmp/initramfs
 gunzip -c ${BUILDDIR}/boot/initrd.img-4.19.94-ti-r62 | cpio -i
 
 cp /tmp/bbb-ostree-helper-scripts/switchroot.sh /tmp/initramfs/scripts/init-bottom
-echo "/scripts/init-bottom/switchroot.sh" >> /tmp/initramfs/scripts/init-bottom/ORDER
+sed -i '/^\/scripts\/init-bottom\/udev/i /scripts/init-bottom/switchroot.sh' ORDER
 
 find . | cpio -H newc -o | gzip -9 > ${BUILDDIR}/boot/initrd.img-4.19.94-ti-r62
 
