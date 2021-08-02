@@ -23,6 +23,9 @@ mkdir -p $BUILDDIR
 
 mount /dev/mapper/${LOOP_NUM}p1 $BUILDDIR
 
+#mkdir /tmp/original
+#cp -r ${BUILDDIR}/* /tmp/original
+
 cd ${BUILDDIR}
 
 mv bin/* usr/bin
@@ -166,6 +169,9 @@ ln -s $REL_DEPLOY/lib
 ln -s $REL_DEPLOY/usr
 
 cd /tmp
+
+#mkdir /tmp/ostree_rootfs
+#cp -r ${BUILDDIR}/* /tmp/ostree_rootfs
 
 umount $BUILDDIR
 sync
