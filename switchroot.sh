@@ -15,7 +15,7 @@ mount --bind -o remount,ro $rootmnt$ostree/usr $rootmnt$ostree/usr
 ## bind mount the physical root
 mount --bind $rootmnt $rootmnt$ostree/sysroot
 ## bind mount the var directory which is preserved between deployments
-mount --bind $rootmnt/ostree/deploy/os/var $rootmnt$ostree/var
+mount --bind $rootmnt/ostree/deploy/debian/var $rootmnt$ostree/var
 ## make sure target directories are present within var
 cd $rootmnt$ostree/var
 mkdir -p roothome mnt opt home

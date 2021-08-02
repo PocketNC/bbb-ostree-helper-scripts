@@ -53,18 +53,16 @@ ln -sr usr/share/dpkg/database var/lib/dpkg
 cat > usr/lib/tmpfiles.d/ostree.conf <<EOF
 d /sysroot/home 0755 root root -
 d /sysroot/root 0700 root root -
-d /var/opt 0755 root root -
 d /var/local 0755 root root -
 d /run/media 0755 root root -
 L /var/lib/dpkg - - - - ../../usr/share/dpkg/database
 EOF
 
 mkdir -p sysroot
-rm -rf {home,root,media,opt} usr/local
+rm -rf {home,root,media} usr/local
 ln -s /sysroot/ostree ostree
 ln -s /sysroot/home home
 ln -s /sysroot/root root
-ln -s /var/opt opt
 ln -s /var/local usr/local
 ln -s /run/media media
 
