@@ -5,9 +5,11 @@
 # see adapting-existing.md.
 
 ## the ostree boot parameter is avaialbe during the init
-env | grep ostree
+#env | grep ostree
 # ostree=/ostree/boot.1/.../.../0
 ## bind mount the ostree deployment to prepare it for move
+mount -o remount,rw $rootmnt $rootmnt
+
 mount --bind $rootmnt$ostree $rootmnt$ostree
 ## bind mount read-only /usr
 mount --bind $rootmnt$ostree/usr $rootmnt$ostree/usr
