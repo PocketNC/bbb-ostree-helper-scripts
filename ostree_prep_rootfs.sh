@@ -5,9 +5,14 @@
 
 cd /tmp
 
-unxz bone-debian-10.9-console-2021-07-23-4gb.img.xz
+IMG_XZ=/tmp/$(basename $1)
+IMG=/tmp/$(basename $1 .xz)
+OUTPUT_IMG=/host/$(basename $1 .img.xz)-ostree.img
 
-IMG=/tmp/bone-debian-10.9-console-2021-07-23-4gb.img
+cp /host/$1 $IMG_XZ
+
+unxz $IMG_XZ
+
 LOOP_DEV=$(losetup -f)
 LOOP_NUM=$(echo ${LOOP_DEV} | awk -F'/' '{print $3}')
 losetup $LOOP_DEV $IMG
@@ -68,18 +73,20 @@ ln -s /run/media media
 
 # TODO - be smarter about kernel version, but for now this is just in here
 # so ostree doesn't complain about the kernel when doing "ostree admin deploy"
-cp boot/vmlinuz-4.19.94-ti-r62 usr/lib/modules/4.19.94-ti-r62/vmlinuz
-cp boot/initrd.img-4.19.94-ti-r62 usr/lib/modules/4.19.94-ti-r62/initramfs.img
+UNAME_R=$(grep "uname_r=" boot/uEnv.txt)
+KERNEL_VERSION=$(echo "${UNAME_R/uname_r=}")
+cp boot/vmlinuz-$KERNEL_VERSION usr/lib/modules/$KERNEL_VERSION/vmlinuz
+cp boot/initrd.img-$KERNEL_VERSION usr/lib/modules/$KERNEL_VERSION/initramfs.img
 
 cd /tmp 
 mkdir /tmp/initramfs
 cd /tmp/initramfs
-gunzip -c ${BUILDDIR}/boot/initrd.img-4.19.94-ti-r62 | cpio -i
+gunzip -c ${BUILDDIR}/boot/initrd.img-$KERNEL_VERSION | cpio -i
 
-cp /tmp/bbb-ostree-helper-scripts/switchroot.sh /tmp/initramfs/scripts/init-bottom
+cp /host/switchroot.sh /tmp/initramfs/scripts/init-bottom
 sed -i '/^\/scripts\/init-bottom\/udev/i /scripts/init-bottom/switchroot.sh' /tmp/initramfs/scripts/init-bottom/ORDER
 
-find . | cpio -H newc -o | gzip -9 > ${BUILDDIR}/boot/initrd.img-4.19.94-ti-r62
+find . | cpio -H newc -o | gzip -9 > ${BUILDDIR}/boot/initrd.img-$KERNEL_VERSION
 
 cd /tmp
 
@@ -128,11 +135,11 @@ ostree admin --sysroot="${OSTREE_SYSROOT}" deploy --os=${OSTREE_OS} "${kargs[@]}
 
 cd $BUILDDIR/boot
 ln -s loader/uEnv.txt
-ln -s loader/vmlinuz-4.19.94-ti-r62
-ln -s loader/initrd.img-4.19.94-ti-r62
+ln -s loader/vmlinuz-$KERNEL_VERSION
+ln -s loader/initrd.img-$KERNEL_VERSION
 ln -s loader/dtbs
-ln -s loader/System.map-4.19.94-ti-r62
-ln -s loader/config-4.19.94-ti-r62
+ln -s loader/System.map-$KERNEL_VERSION
+ln -s loader/config-$KERNEL_VERSION
 ln -s loader/SOC.sh
 ln -s loader/uboot
 
@@ -145,11 +152,11 @@ ABS_DEPLOY=$(echo $DEPLOY | sed 's,../../,/,')
 REL_DEPLOY=$(echo $DEPLOY | sed 's,../../,,')
 sed -i "/^cmdline=/ s,\$, ostree=$ABS_DEPLOY," uEnv.txt
 
-ln -s $DEPLOY/boot/vmlinuz-4.19.94-ti-r62
-ln -s $DEPLOY/boot/initrd.img-4.19.94-ti-r62
+ln -s $DEPLOY/boot/vmlinuz-$KERNEL_VERSION
+ln -s $DEPLOY/boot/initrd.img-$KERNEL_VERSION
 ln -s $DEPLOY/boot/dtbs
-ln -s $DEPLOY/boot/System.map-4.19.94-ti-r62
-ln -s $DEPLOY/boot/config-4.19.94-ti-r62
+ln -s $DEPLOY/boot/System.map-$KERNEL_VERSION
+ln -s $DEPLOY/boot/config-$KERNEL_VERSION
 ln -s $DEPLOY/boot/SOC.sh
 ln -s $DEPLOY/boot/uboot
 
@@ -161,8 +168,9 @@ ln -s $REL_DEPLOY/usr
 cd /tmp
 
 umount $BUILDDIR
+sync
 kpartx -d $LOOP_DEV
+losetup -d $LOOP_DEV
 
-#xz $IMG
-#cp ${IMG}.xz /host
-cp ${IMG} /host
+cp ${IMG} ${OUTPUT_IMG}
+#xz ${OUTPUT_IMG}
