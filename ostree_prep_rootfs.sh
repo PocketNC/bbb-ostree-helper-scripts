@@ -41,6 +41,8 @@ ln -s usr/lib lib
 rm -rf dev
 mkdir dev
 
+sed -i -e 's|DHOME=/home|DHOME=/sysroot/home|g' etc/adduser.conf
+sed -i -e 's|DHOME=/home|DHOME=/sysroot/home|g' etc/default/useradd
 mv etc usr
 
 mkdir -p usr/share/dpkg
