@@ -3,6 +3,8 @@
 # Modified from
 # https://salsa.debian.org/debian/ostree/-/blob/debian/master/debian/ostree-boot-examples/modified-deb-ostree-builder
 
+OSTREE_OS=debian
+
 cd /tmp
 
 IMG_XZ=/tmp/$(basename $1)
@@ -27,6 +29,9 @@ mount /dev/mapper/${LOOP_NUM}p1 $BUILDDIR
 #cp -r ${BUILDDIR}/* /tmp/original
 
 cd ${BUILDDIR}
+
+UNAME_R=$(grep "uname_r=" boot/uEnv.txt)
+KERNEL_VERSION=$(echo "${UNAME_R/uname_r=}")
 
 mv bin/* usr/bin
 rm -r bin
@@ -59,6 +64,7 @@ mv var/lib/dpkg usr/share/dpkg/database
 ln -sr usr/share/dpkg/database var/lib/dpkg
 
 cat > usr/lib/tmpfiles.d/ostree.conf <<EOF
+L /var/home - - - - ../sysroot/home
 d /sysroot/home 0755 root root -
 d /sysroot/root 0700 root root -
 d /var/local 0755 root root -
@@ -67,19 +73,23 @@ L /var/lib/dpkg - - - - ../../usr/share/dpkg/database
 EOF
 
 mkdir -p sysroot
-rm -rf {home,root,media} usr/local
+mv home /tmp/home
+rm -rf {root,media} usr/local
 ln -s /sysroot/ostree ostree
 ln -s /sysroot/home home
 ln -s /sysroot/root root
 ln -s /var/local usr/local
 ln -s /run/media media
 
-# TODO - be smarter about kernel version, but for now this is just in here
-# so ostree doesn't complain about the kernel when doing "ostree admin deploy"
-UNAME_R=$(grep "uname_r=" boot/uEnv.txt)
-KERNEL_VERSION=$(echo "${UNAME_R/uname_r=}")
-cp boot/vmlinuz-$KERNEL_VERSION usr/lib/modules/$KERNEL_VERSION/vmlinuz
-cp boot/initrd.img-$KERNEL_VERSION usr/lib/modules/$KERNEL_VERSION/initramfs.img
+ln -s ../lib boot/lib
+#ln -s $KERNEL_VERSION boot/dtbs/current
+#ln -s $KERNEL_VERSION lib/modules/current
+#ln -s $KERNEL_VERSION var/lib/initramfs-tools/current
+
+#ln -s vmlinuz-$KERNEL_VERSION boot/vmlinuz-current
+#ln -s initrd.img-$KERNEL_VERSION boot/initrd.img-current
+#ln -s System.map-$KERNEL_VERSION boot/System.map-current
+#ln -s config-$KERNEL_VERSION boot/config-current
 
 cd /tmp 
 mkdir /tmp/initramfs
@@ -90,6 +100,24 @@ cp /host/switchroot.sh /tmp/initramfs/scripts/init-bottom
 sed -i '/^\/scripts\/init-bottom\/udev/i /scripts/init-bottom/switchroot.sh' /tmp/initramfs/scripts/init-bottom/ORDER
 
 find . | cpio -H newc -o | gzip -9 > ${BUILDDIR}/boot/initrd.img-$KERNEL_VERSION
+
+# This is in here so ostree doesn't complain about the kernel 
+# when doing "ostree admin deploy"
+# TODO - develop a specialized Beaglebone ostree bootloader deployment
+cd ${BUILDDIR}
+cp boot/vmlinuz-$KERNEL_VERSION usr/lib/modules/$KERNEL_VERSION/vmlinuz
+cp boot/initrd.img-$KERNEL_VERSION usr/lib/modules/$KERNEL_VERSION/initramfs.img
+CHECKSUM=$(cat boot/vmlinuz-$KERNEL_VERSION boot/initrd.img-$KERNEL_VERSION | sha256sum | head -c 64)
+
+# TODO - I'm using /ostree/boot here assuming this could be a symbolic link to the correct 
+# /ostree/boot.1 or /ostree/boot.0. I don't quite understand how this is supposed to be done.
+# If this deploy path can be known here at build time, then /boot could simply be a symlink
+# to the ostree repository's /boot
+DEPLOY=/ostree/boot/${OSTREE_OS}/${CHECKSUM}/0
+REL_DEPLOY=ostree/boot/${OSTREE_OS}/${CHECKSUM}/0
+
+#sed -i 's/^uname_r=.*$/uname_r=current/' boot/uEnv.txt
+sed -i "/^cmdline=/ s,\$, ostree=$DEPLOY," boot/uEnv.txt
 
 cd /tmp
 
@@ -110,7 +138,6 @@ rm -r ${BUILDDIR}/*
 #OSTREE_SYSROOT=$(mktemp -d -p /var/tmp ostree-deploy.XXXXXXXXXX)
 # Make sure ostree_prep_rootfs.sh runs first so /mnt/ostree_rootfs is setup
 OSTREE_SYSROOT=${BUILDDIR}
-OSTREE_OS=debian
 # TODO add a remote URL
 #OSTREE_URL=https://www.example.com
 OSTREE_BRANCH_DEPLOY=pocketnc/bbb/console
@@ -132,43 +159,19 @@ uuid=$(uuid)
 kargs=(--karg=root=UUID=${uuid} --karg=rw --karg=splash --karg=plymouth.ignore-serial-consoles --karg=quiet)
 ostree admin --sysroot="${OSTREE_SYSROOT}" deploy --os=${OSTREE_OS} "${kargs[@]}" ${OSTREE_OS}:${OSTREE_BRANCH_DEPLOY}
 
-# TODO - * is used below, but is assuming only one folder/file will match because the repo only has a single commit/deployment
-# Eventually we won't be able to make that assumption, but taking a shortcut for now. How do we figure out what deployment
-# is active?
+cd $BUILDDIR
 
-cd $BUILDDIR/boot
-ln -s loader/uEnv.txt
-ln -s loader/vmlinuz-$KERNEL_VERSION
-ln -s loader/initrd.img-$KERNEL_VERSION
-ln -s loader/dtbs
-ln -s loader/System.map-$KERNEL_VERSION
-ln -s loader/config-$KERNEL_VERSION
-ln -s loader/SOC.sh
-ln -s loader/uboot
-
-cd $BUILDDIR/boot/loader
-cp ../../ostree/deploy/debian/deploy/*/boot/uEnv.txt .
-
-# Add ostree= argument to kernel cmdline arguments
-DEPLOY=$(echo ../../ostree/deploy/debian/deploy/*/ | sed 's,/$,,')
-ABS_DEPLOY=$(echo $DEPLOY | sed 's,../../,/,')
-REL_DEPLOY=$(echo $DEPLOY | sed 's,../../,,')
-sed -i "/^cmdline=/ s,\$, ostree=$ABS_DEPLOY," uEnv.txt
-
-ln -s $DEPLOY/boot/vmlinuz-$KERNEL_VERSION
-ln -s $DEPLOY/boot/initrd.img-$KERNEL_VERSION
-ln -s $DEPLOY/boot/dtbs
-ln -s $DEPLOY/boot/System.map-$KERNEL_VERSION
-ln -s $DEPLOY/boot/config-$KERNEL_VERSION
-ln -s $DEPLOY/boot/SOC.sh
-ln -s $DEPLOY/boot/uboot
+# TODO - I believe this should eventually be done by ostree admin deploy
+rm -r boot
+ln -s ${REL_DEPLOY}/boot
+ln -s boot.1 ostree/boot
 
 # So U-Boot can find firmware
-cd ${BUILDDIR}
-ln -s $REL_DEPLOY/lib
-ln -s $REL_DEPLOY/usr
+ln -s boot/lib
 
 cd /tmp
+
+mv /tmp/home/* ${BUILDDIR}/home
 
 #mkdir /tmp/ostree_rootfs
 #cp -r ${BUILDDIR}/* /tmp/ostree_rootfs
