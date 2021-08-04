@@ -30,6 +30,9 @@ mount /dev/mapper/${LOOP_NUM}p1 $BUILDDIR
 
 cd ${BUILDDIR}
 
+# This is run at boot in /opt/scripts/boot/am335x_evm.sh, but errors due to read-only filesystem, doing it now while we can
+sed -i -e 's:connmand -n:connmand -n --nodnsproxy:g' lib/systemd/system/connman.service || true
+
 UNAME_R=$(grep "uname_r=" boot/uEnv.txt)
 KERNEL_VERSION=$(echo "${UNAME_R/uname_r=}")
 
@@ -74,6 +77,7 @@ EOF
 
 mkdir -p sysroot
 mv home /tmp/home
+#cp -r usr/etc /tmp/etc
 rm -rf {root,media} usr/local
 ln -s /sysroot/ostree ostree
 ln -s /sysroot/home home
@@ -82,14 +86,14 @@ ln -s /var/local usr/local
 ln -s /run/media media
 
 ln -s ../lib boot/lib
-#ln -s $KERNEL_VERSION boot/dtbs/current
-#ln -s $KERNEL_VERSION lib/modules/current
-#ln -s $KERNEL_VERSION var/lib/initramfs-tools/current
+ln -s $KERNEL_VERSION boot/dtbs/current
+ln -s $KERNEL_VERSION lib/modules/current
+ln -s $KERNEL_VERSION var/lib/initramfs-tools/current
 
-#ln -s vmlinuz-$KERNEL_VERSION boot/vmlinuz-current
-#ln -s initrd.img-$KERNEL_VERSION boot/initrd.img-current
-#ln -s System.map-$KERNEL_VERSION boot/System.map-current
-#ln -s config-$KERNEL_VERSION boot/config-current
+ln -s vmlinuz-$KERNEL_VERSION boot/vmlinuz-current
+ln -s initrd.img-$KERNEL_VERSION boot/initrd.img-current
+ln -s System.map-$KERNEL_VERSION boot/System.map-current
+ln -s config-$KERNEL_VERSION boot/config-current
 
 cd /tmp 
 mkdir /tmp/initramfs
@@ -113,11 +117,11 @@ CHECKSUM=$(cat boot/vmlinuz-$KERNEL_VERSION boot/initrd.img-$KERNEL_VERSION | sh
 # /ostree/boot.1 or /ostree/boot.0. I don't quite understand how this is supposed to be done.
 # If this deploy path can be known here at build time, then /boot could simply be a symlink
 # to the ostree repository's /boot
-DEPLOY=/ostree/boot/${OSTREE_OS}/${CHECKSUM}/0
-REL_DEPLOY=ostree/boot/${OSTREE_OS}/${CHECKSUM}/0
+#DEPLOY=/ostree/boot/${OSTREE_OS}/${CHECKSUM}/0
+#REL_DEPLOY=ostree/boot/${OSTREE_OS}/${CHECKSUM}/0
 
-#sed -i 's/^uname_r=.*$/uname_r=current/' boot/uEnv.txt
-sed -i "/^cmdline=/ s,\$, ostree=$DEPLOY," boot/uEnv.txt
+sed -i 's/^uname_r=.*$/uname_r=current/' boot/uEnv.txt
+#sed -i "/^cmdline=/ s,\$, ostree=$DEPLOY," boot/uEnv.txt
 
 cd /tmp
 
@@ -145,6 +149,9 @@ OSTREE_REPODIR=/tmp/repo
 REPOPATH=${OSTREE_SYSROOT}/ostree/repo
 BOOT=${OSTREE_SYSROOT}/boot
 
+DEPLOY=/ostree/boot.1/${OSTREE_OS}/${CHECKSUM}/0
+REL_DEPLOY=ostree/boot.1/${OSTREE_OS}/${CHECKSUM}/0
+
 echo "Creating OSTree client rootfs in..."
 echo $OSTREE_SYSROOT
 
@@ -159,19 +166,40 @@ uuid=$(uuid)
 kargs=(--karg=root=UUID=${uuid} --karg=rw --karg=splash --karg=plymouth.ignore-serial-consoles --karg=quiet)
 ostree admin --sysroot="${OSTREE_SYSROOT}" deploy --os=${OSTREE_OS} "${kargs[@]}" ${OSTREE_OS}:${OSTREE_BRANCH_DEPLOY}
 
-cd $BUILDDIR
-
 # TODO - I believe this should eventually be done by ostree admin deploy
-rm -r boot
-ln -s ${REL_DEPLOY}/boot
-ln -s boot.1 ostree/boot
+cd $BUILDDIR
+cp $REL_DEPLOY/boot/uEnv.txt boot/loader.1
+cd boot/loader.1
+sed -i "/^cmdline=/ s,\$, ostree=$DEPLOY," uEnv.txt
+ln -s ${DEPLOY}/boot/vmlinuz-current
+ln -s ${DEPLOY}/boot/initrd.img-current
+ln -s ${DEPLOY}/boot/dtbs
+ln -s ${DEPLOY}/boot/System.map-current
+ln -s ${DEPLOY}/boot/config-current
+ln -s ${DEPLOY}/boot/SOC.sh
+ln -s ${DEPLOY}/boot/uboot
+ln -s ${DEPLOY}/boot/lib
+
+# Once these are setup, they shouldn't need to change
+cd $BUILDDIR/boot
+ln -s loader/uEnv.txt
+ln -s loader/vmlinuz-current
+ln -s loader/initrd.img-current
+ln -s loader/dtbs
+ln -s loader/System.map-current
+ln -s loader/config-current
+ln -s loader/SOC.sh
+ln -s loader/uboot
 
 # So U-Boot can find firmware
-ln -s boot/lib
+cd $BUILDDIR
+ln -s boot/loader/lib
+
 
 cd /tmp
 
 mv /tmp/home/* ${BUILDDIR}/home
+#mv /tmp/etc ${BUILDDIR}
 
 #mkdir /tmp/ostree_rootfs
 #cp -r ${BUILDDIR}/* /tmp/ostree_rootfs
