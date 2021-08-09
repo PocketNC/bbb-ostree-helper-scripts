@@ -21,6 +21,6 @@ mkdir -p $BUILDDIR
 
 mount /dev/mapper/${LOOP_NUM}p1 $BUILDDIR
 
-export UNAME_R=$(grep "uname_r=" $(BUILDDIR)/boot/uEnv.txt)
+export UNAME_R=$(grep "uname_r=" ${BUILDDIR}/boot/uEnv.txt)
 export KERNEL_VERSION=$(echo "${UNAME_R/uname_r=}")
 
