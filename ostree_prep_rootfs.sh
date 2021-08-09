@@ -81,14 +81,15 @@ ln -s System.map-$KERNEL_VERSION boot/System.map-current
 ln -s config-$KERNEL_VERSION boot/config-current
 
 cd /tmp 
-mkdir /tmp/initramfs
-cd /tmp/initramfs
-gunzip -c ${BUILDDIR}/boot/initrd.img-$KERNEL_VERSION | cpio -i
 
-cp /host/switchroot.sh /tmp/initramfs/scripts/init-bottom
-sed -i '/^\/scripts\/init-bottom\/udev/i /scripts/init-bottom/switchroot.sh' /tmp/initramfs/scripts/init-bottom/ORDER
-
-find . | cpio -H newc -o | gzip -9 > ${BUILDDIR}/boot/initrd.img-$KERNEL_VERSION
+# Delete this if we get initramfs working with dracut
+#mkdir /tmp/initramfs
+#cd /tmp/initramfs
+#gunzip -c ${BUILDDIR}/boot/initrd.img-$KERNEL_VERSION | cpio -i
+#
+#cp /host/switchroot.sh /tmp/initramfs/scripts/init-bottom
+#sed -i '/^\/scripts\/init-bottom\/udev/i /scripts/init-bottom/switchroot.sh' /tmp/initramfs/scripts/init-bottom/ORDER
+#find . | cpio -H newc -o | gzip -9 > ${BUILDDIR}/boot/initrd.img-$KERNEL_VERSION
 
 # This is in here so ostree doesn't complain about the kernel 
 # when doing "ostree admin deploy"
