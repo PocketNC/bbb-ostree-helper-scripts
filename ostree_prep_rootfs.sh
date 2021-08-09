@@ -3,27 +3,16 @@
 # Modified from
 # https://salsa.debian.org/debian/ostree/-/blob/debian/master/debian/ostree-boot-examples/modified-deb-ostree-builder
 
-OSTREE_OS=debian
+if [ ! -n "${BUILDDIR}" ]; then
+  echo "\$BUILDDIR must be defined"
+  exit 1
+fi
+if [ ! -n "${KERNEL_VERSION}" ]; then
+  echo "\$KERNEL_VERSION must be defined"
+  exit 1
+fi
 
 cd /tmp
-
-IMG_XZ=/tmp/$(basename $1)
-IMG=/tmp/$(basename $1 .xz)
-OUTPUT_IMG=/host/$(basename $1 .img.xz)-ostree.img
-
-cp /host/$1 $IMG_XZ
-
-unxz $IMG_XZ
-
-LOOP_DEV=$(losetup -f)
-LOOP_NUM=$(echo ${LOOP_DEV} | awk -F'/' '{print $3}')
-losetup $LOOP_DEV $IMG
-kpartx -av $LOOP_DEV
-
-BUILDDIR=/mnt/ostree_rootfs
-mkdir -p $BUILDDIR
-
-mount /dev/mapper/${LOOP_NUM}p1 $BUILDDIR
 
 #mkdir /tmp/original
 #cp -r ${BUILDDIR}/* /tmp/original
@@ -32,9 +21,6 @@ cd ${BUILDDIR}
 
 # This is run at boot in /opt/scripts/boot/am335x_evm.sh, but errors due to read-only filesystem, doing it now while we can
 sed -i -e 's:connmand -n:connmand -n --nodnsproxy:g' lib/systemd/system/connman.service || true
-
-UNAME_R=$(grep "uname_r=" boot/uEnv.txt)
-KERNEL_VERSION=$(echo "${UNAME_R/uname_r=}")
 
 mv bin/* usr/bin
 rm -r bin
@@ -77,7 +63,6 @@ EOF
 
 mkdir -p sysroot
 mv home /tmp/home
-#cp -r usr/etc /tmp/etc
 rm -rf {root,media} usr/local
 ln -s /sysroot/ostree ostree
 ln -s /sysroot/home home
@@ -135,79 +120,3 @@ ostree summary --repo="$REPO" --update
 
 # Remove rootfs so ostree_client_setup.sh can replace them 
 rm -r ${BUILDDIR}/*
-
-# Modified from
-# https://github.com/dbnicholson/deb-ostree-builder/blob/simple-builder/create-deployment
-
-#OSTREE_SYSROOT=$(mktemp -d -p /var/tmp ostree-deploy.XXXXXXXXXX)
-# Make sure ostree_prep_rootfs.sh runs first so /mnt/ostree_rootfs is setup
-OSTREE_SYSROOT=${BUILDDIR}
-# TODO add a remote URL
-#OSTREE_URL=https://www.example.com
-OSTREE_BRANCH_DEPLOY=pocketnc/bbb/console
-OSTREE_REPODIR=/tmp/repo
-REPOPATH=${OSTREE_SYSROOT}/ostree/repo
-BOOT=${OSTREE_SYSROOT}/boot
-
-DEPLOY=/ostree/boot.1/${OSTREE_OS}/${CHECKSUM}/0
-REL_DEPLOY=ostree/boot.1/${OSTREE_OS}/${CHECKSUM}/0
-
-echo "Creating OSTree client rootfs in..."
-echo $OSTREE_SYSROOT
-
-ostree admin init-fs "${OSTREE_SYSROOT}"
-ostree admin --sysroot="${OSTREE_SYSROOT}" os-init ${OSTREE_OS}
-#ostree --repo="${REPOPATH}" remote add ${OSTREE_OS} ${OSTREE_URL} ${OSTREE_BRANCH_DEPLOY}
-#ostree --repo="${REPOPATH}" pull ${OSTREE_OS}:${OSTREE_BRANCH_DEPLOY}
-ostree --repo="${REPOPATH}" pull-local --disable-fsync --remote=${OSTREE_OS} ${OSTREE_REPODIR} ${OSTREE_BRANCH_DEPLOY}
-#ostree --repo="${REPOPATH}" config set sysroot.bootloader none
-
-uuid=$(uuid)
-kargs=(--karg=root=UUID=${uuid} --karg=rw --karg=splash --karg=plymouth.ignore-serial-consoles --karg=quiet)
-ostree admin --sysroot="${OSTREE_SYSROOT}" deploy --os=${OSTREE_OS} "${kargs[@]}" ${OSTREE_OS}:${OSTREE_BRANCH_DEPLOY}
-
-# TODO - I believe this should eventually be done by ostree admin deploy
-cd $BUILDDIR
-cp $REL_DEPLOY/boot/uEnv.txt boot/loader.1
-cd boot/loader.1
-sed -i "/^cmdline=/ s,\$, ostree=$DEPLOY," uEnv.txt
-ln -s ${DEPLOY}/boot/vmlinuz-current
-ln -s ${DEPLOY}/boot/initrd.img-current
-ln -s ${DEPLOY}/boot/dtbs
-ln -s ${DEPLOY}/boot/System.map-current
-ln -s ${DEPLOY}/boot/config-current
-ln -s ${DEPLOY}/boot/SOC.sh
-ln -s ${DEPLOY}/boot/uboot
-ln -s ${DEPLOY}/boot/lib
-
-# Once these are setup, they shouldn't need to change
-cd $BUILDDIR/boot
-ln -s loader/uEnv.txt
-ln -s loader/vmlinuz-current
-ln -s loader/initrd.img-current
-ln -s loader/dtbs
-ln -s loader/System.map-current
-ln -s loader/config-current
-ln -s loader/SOC.sh
-ln -s loader/uboot
-
-# So U-Boot can find firmware
-cd $BUILDDIR
-ln -s boot/loader/lib
-
-
-cd /tmp
-
-mv /tmp/home/* ${BUILDDIR}/home
-#mv /tmp/etc ${BUILDDIR}
-
-#mkdir /tmp/ostree_rootfs
-#cp -r ${BUILDDIR}/* /tmp/ostree_rootfs
-
-umount $BUILDDIR
-sync
-kpartx -d $LOOP_DEV
-losetup -d $LOOP_DEV
-
-cp ${IMG} ${OUTPUT_IMG}
-#xz ${OUTPUT_IMG}
