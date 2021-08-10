@@ -74,8 +74,10 @@ apt-get install -y dracut
 apt-get install -y build-essential
 apt-get build-dep -y ostree
 
-# install ostree and it's dependencies, careful we're building from source
-# so dependencies may have changed, though
+# install ostree and it's dependencies
+# CAREFUL - we're building from source
+# so dependencies may have changed since
+# current debian version of ostree
 #apt-get install -y ostree
 
 # remove ostree so only dependencies are left
@@ -90,6 +92,9 @@ cd /tmp
 
 # TODO - build this before hand and simply install binaries
 # (don't install all the build-deps above either)
+# Can't seem to get this to work with make install DESTDIR=/tmp/ostree_install
+# Not sure what I'm doing wrong, but ostree complains about missing
+# libraries
 git clone https://github.com/PocketNC/ostree.git
 cd ostree
 git submodule update --init
@@ -97,8 +102,13 @@ env NOCONFIGURE=1 ./autogen.sh
 ./configure --with-dracut --prefix /usr
 make
 make install
+
+#mkdir -p /tmp/ostree_install
+#make install DESTDIR=/tmp/ostree_install
 cd ..
 rm -rf ostree
+
+#tar czf ostree-835b114192b37dc3bfa797a966aaa8e3099d9cb7.tar.gz ostree_install
 
 dracut --force --add ostree /boot/initrd.img-$KERNEL_VERSION $KERNEL_VERSION
 
@@ -107,6 +117,9 @@ rm -rf /usr/etc
 rm /usr/bin/qemu-arm-static
 rm /etc/resolv.conf
 ln -s  /run/connman/resolv.conf /etc/resolv.conf
+
+apt-get clean
+
 rm /chroot_script.sh
 
 __EOF__
@@ -123,3 +136,5 @@ cp --remove-destination /etc/resolv.conf ${BUILDDIR}/etc/resolv.conf
 chroot_mount
 chroot ${BUILDDIR} qemu-arm-static /bin/bash -e /chroot_script.sh
 chroot_umount
+
+#cp ${BUILDDIR}/tmp/ostree-835b114192b37dc3bfa797a966aaa8e3099d9cb7.tar.gz /host
