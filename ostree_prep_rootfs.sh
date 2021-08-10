@@ -22,6 +22,9 @@ cd ${BUILDDIR}
 # This is run at boot in /opt/scripts/boot/am335x_evm.sh, but errors due to read-only filesystem, doing it now while we can
 sed -i -e 's:connmand -n:connmand -n --nodnsproxy:g' lib/systemd/system/connman.service || true
 
+mv opt usr
+ln -s usr/opt opt
+
 mv bin/* usr/bin
 rm -r bin
 ln -s usr/bin bin
@@ -84,15 +87,6 @@ ln -s config-$KERNEL_VERSION boot/config-current
 
 cd /tmp 
 
-# Delete this if we get initramfs working with dracut
-#mkdir /tmp/initramfs
-#cd /tmp/initramfs
-#gunzip -c ${BUILDDIR}/boot/initrd.img-$KERNEL_VERSION | cpio -i
-#
-#cp /host/switchroot.sh /tmp/initramfs/scripts/init-bottom
-#sed -i '/^\/scripts\/init-bottom\/udev/i /scripts/init-bottom/switchroot.sh' /tmp/initramfs/scripts/init-bottom/ORDER
-#find . | cpio -H newc -o | gzip -9 > ${BUILDDIR}/boot/initrd.img-$KERNEL_VERSION
-
 # This is in here so ostree doesn't complain about the kernel 
 # when doing "ostree admin deploy"
 # TODO - develop a specialized Beaglebone ostree bootloader deployment
@@ -101,15 +95,7 @@ cp boot/vmlinuz-$KERNEL_VERSION usr/lib/modules/$KERNEL_VERSION/vmlinuz
 cp boot/initrd.img-$KERNEL_VERSION usr/lib/modules/$KERNEL_VERSION/initramfs.img
 CHECKSUM=$(cat boot/vmlinuz-$KERNEL_VERSION boot/initrd.img-$KERNEL_VERSION | sha256sum | head -c 64)
 
-# TODO - I'm using /ostree/boot here assuming this could be a symbolic link to the correct 
-# /ostree/boot.1 or /ostree/boot.0. I don't quite understand how this is supposed to be done.
-# If this deploy path can be known here at build time, then /boot could simply be a symlink
-# to the ostree repository's /boot
-#DEPLOY=/ostree/boot/${OSTREE_OS}/${CHECKSUM}/0
-#REL_DEPLOY=ostree/boot/${OSTREE_OS}/${CHECKSUM}/0
-
 sed -i 's/^uname_r=.*$/uname_r=current/' boot/uEnv.txt
-#sed -i "/^cmdline=/ s,\$, ostree=$DEPLOY," boot/uEnv.txt
 
 cd /tmp
 
