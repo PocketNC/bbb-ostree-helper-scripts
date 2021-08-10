@@ -45,6 +45,7 @@ mkdir dev
 
 sed -i -e 's|DHOME=/home|DHOME=/sysroot/home|g' etc/adduser.conf
 sed -i -e 's|DHOME=/home|DHOME=/sysroot/home|g' etc/default/useradd
+touch etc/machine-id
 mv etc usr
 
 mkdir -p usr/share/dpkg
@@ -63,6 +64,8 @@ EOF
 
 mkdir -p sysroot
 mv home /tmp/home
+mv var /tmp/var
+mkdir var
 rm -rf {root,media} usr/local
 ln -s /sysroot/ostree ostree
 ln -s /sysroot/home home
@@ -73,7 +76,6 @@ ln -s /run/media media
 ln -s ../lib boot/lib
 ln -s $KERNEL_VERSION boot/dtbs/current
 ln -s $KERNEL_VERSION lib/modules/current
-ln -s $KERNEL_VERSION var/lib/initramfs-tools/current
 
 ln -s vmlinuz-$KERNEL_VERSION boot/vmlinuz-current
 ln -s initrd.img-$KERNEL_VERSION boot/initrd.img-current

@@ -70,11 +70,23 @@ chroot_umount () {
 cat > "${BUILDDIR}/chroot_script.sh" <<-__EOF__
 sed -i "s/^#deb-src/deb-src/" /etc/apt/sources.list
 apt-get update
-apt-get install -y dracut build-essential
+apt-get install -y dracut 
+apt-get install -y build-essential
 apt-get build-dep -y ostree
 
+# install ostree and it's dependencies, careful we're building from source
+# so dependencies may have changed, though
+#apt-get install -y ostree
+
+# remove ostree so only dependencies are left
+#apt-get purge -y ostree
 
 cd /tmp
+
+#wget https://github.com/PocketNC/ostree/releases/download/test/ostree-835b114192b37dc3bfa797a966aaa8e3099d9cb7.tar.gz
+#tar xzf ostree-835b114192b37dc3bfa797a966aaa8e3099d9cb7.tar.gz
+#cd ostree_install
+#cp -r * /
 
 # TODO - build this before hand and simply install binaries
 # (don't install all the build-deps above either)
@@ -89,6 +101,8 @@ cd ..
 rm -rf ostree
 
 dracut --force --add ostree /boot/initrd.img-$KERNEL_VERSION $KERNEL_VERSION
+
+rm -rf /usr/etc
 
 rm /usr/bin/qemu-arm-static
 rm /etc/resolv.conf

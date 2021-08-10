@@ -64,6 +64,8 @@ ln -s boot/loader/lib
 cd /tmp
 
 mv /tmp/home/* ${BUILDDIR}/home
+mv /tmp/var/* ${BUILDDIR}/ostree/deploy/${OSTREE_OS}/var
+mkdir ${BUILDDIR}/var
 #mv /tmp/etc ${BUILDDIR}
 
 #mkdir /tmp/ostree_rootfs
