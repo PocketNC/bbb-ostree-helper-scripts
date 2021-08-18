@@ -8,8 +8,8 @@
 OSTREE_SYSROOT=${BUILDDIR}
 # TODO add a remote URL
 #OSTREE_URL=https://www.example.com
-OSTREE_BRANCH_DEPLOY=pocketnc/bbb/console
-OSTREE_REPODIR=/tmp/repo
+OSTREE_BRANCH_DEPLOY=${OSTREE_BRANCH}
+OSTREE_REPODIR=/host/repo
 OSTREE_OS=debian
 REPOPATH=${OSTREE_SYSROOT}/ostree/repo
 BOOT=${OSTREE_SYSROOT}/boot

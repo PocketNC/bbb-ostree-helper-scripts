@@ -11,6 +11,14 @@ if [ ! -n "${KERNEL_VERSION}" ]; then
   echo "\$KERNEL_VERSION must be defined"
   exit 1
 fi
+if [ ! -n "${OSTREE_BRANCH}" ]; then
+  echo "\$OSTREE_BRANCH must be defined"
+  exit 1
+fi
+if [ ! -n "${OSTREE_SUBJECT}" ]; then
+  echo "\$OSTREE_SUBJECT must be defined"
+  exit 1
+fi
 
 cd /tmp
 
@@ -99,12 +107,11 @@ sed -i 's/^uname_r=.*$/uname_r=current/' boot/uEnv.txt
 
 cd /tmp
 
-mkdir repo
-REPO=/tmp/repo
-# TODO - eventually we won't be creating the repo every time
-# and simply adding a commit to it
-ostree --repo="$REPO" init --mode=archive-z2
-ostree commit --repo="$REPO" --branch="pocketnc/bbb/console" --subject="Build bbb console" --skip-if-unchanged --table-output ${BUILDDIR}
+REPO=/host/repo
+if [ ! -d "$REPO" ]; then
+  ostree --repo="$REPO" init --mode=archive-z2
+fi
+ostree commit --repo="$REPO" --branch="${OSTREE_BRANCH}" --subject="${OSTREE_SUBJECT}" --skip-if-unchanged --table-output "${BUILDDIR}"
 ostree summary --repo="$REPO" --update
 
 # Remove rootfs so ostree_client_setup.sh can replace them 
