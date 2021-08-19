@@ -105,6 +105,37 @@ CHECKSUM=$(cat boot/vmlinuz-$KERNEL_VERSION boot/initrd.img-$KERNEL_VERSION | sh
 
 sed -i 's/^uname_r=.*$/uname_r=current/' boot/uEnv.txt
 
+mkdir -p usr/lib/ostree-boot
+
+cat  > usr/lib/ostree-boot/setup.sh <<-__EOF__
+#!/bin/bash
+
+SYSROOT=\$1
+DEPLOY=\$2
+LOADER=\$3
+
+echo "PWD: \$PWD"
+echo "SYSROOT: \$SYSROOT"
+echo "DEPLOY: \$DEPLOY"
+echo "LOADER: \$LOADER"
+
+cd \${SYSROOT}\${LOADER}
+
+cp \${SYSROOT}\${DEPLOY}/boot/uEnv.txt uEnv.txt
+sed -i "/^cmdline=/ s,\$, ostree=\${DEPLOY}," uEnv.txt
+
+ln -s \${DEPLOY}/boot/vmlinuz-current
+ln -s \${DEPLOY}/boot/initrd.img-current
+ln -s \${DEPLOY}/boot/dtbs
+ln -s \${DEPLOY}/boot/System.map-current
+ln -s \${DEPLOY}/boot/config-current
+ln -s \${DEPLOY}/boot/SOC.sh
+ln -s \${DEPLOY}/boot/uboot
+ln -s \${DEPLOY}/boot/lib
+
+__EOF__
+chmod +x usr/lib/ostree-boot/setup.sh
+
 cd /tmp
 
 REPO=/host/repo

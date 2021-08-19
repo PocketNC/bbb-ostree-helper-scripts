@@ -20,30 +20,25 @@ REL_DEPLOY=ostree/boot.1/${OSTREE_OS}/${CHECKSUM}/0
 echo "Creating OSTree client rootfs in..."
 echo $OSTREE_SYSROOT
 
+# Set up a fake loader directory with a uEnv.txt file
+# so ostree treats the sysroot as a U-Boot bootloader.
+# We explicitly set it to be a uboot bootloader, but
+# it complains if there is no uEnv.txt file.
+mkdir -p $BUILDDIR/boot/loader.0
+cd $BUILDDIR/boot
+ln -s loader.0 loader
+touch $BUILDDIR/boot/loader/uEnv.txt
+
 ostree admin init-fs "${OSTREE_SYSROOT}"
 ostree admin --sysroot="${OSTREE_SYSROOT}" os-init ${OSTREE_OS}
 #ostree --repo="${REPOPATH}" remote add ${OSTREE_OS} ${OSTREE_URL} ${OSTREE_BRANCH_DEPLOY}
 #ostree --repo="${REPOPATH}" pull ${OSTREE_OS}:${OSTREE_BRANCH_DEPLOY}
 ostree --repo="${REPOPATH}" pull-local --disable-fsync --remote=${OSTREE_OS} ${OSTREE_REPODIR} ${OSTREE_BRANCH_DEPLOY}
-#ostree --repo="${REPOPATH}" config set sysroot.bootloader none
+ostree --repo="${REPOPATH}" config set sysroot.bootloader uboot
 
 uuid=$(uuid)
 kargs=(--karg=root=UUID=${uuid} --karg=rw --karg=splash --karg=plymouth.ignore-serial-consoles --karg=quiet)
 ostree admin --sysroot="${OSTREE_SYSROOT}" deploy --os=${OSTREE_OS} "${kargs[@]}" ${OSTREE_OS}:${OSTREE_BRANCH_DEPLOY}
-
-# TODO - I believe this should eventually be done by ostree admin deploy
-cd $BUILDDIR
-cp $REL_DEPLOY/boot/uEnv.txt boot/loader.1
-cd boot/loader.1
-sed -i "/^cmdline=/ s,\$, ostree=$DEPLOY," uEnv.txt
-ln -s ${DEPLOY}/boot/vmlinuz-current
-ln -s ${DEPLOY}/boot/initrd.img-current
-ln -s ${DEPLOY}/boot/dtbs
-ln -s ${DEPLOY}/boot/System.map-current
-ln -s ${DEPLOY}/boot/config-current
-ln -s ${DEPLOY}/boot/SOC.sh
-ln -s ${DEPLOY}/boot/uboot
-ln -s ${DEPLOY}/boot/lib
 
 # Once these are setup, they shouldn't need to change
 cd $BUILDDIR/boot
@@ -59,7 +54,6 @@ ln -s loader/uboot
 # So U-Boot can find firmware
 cd $BUILDDIR
 ln -s boot/loader/lib
-
 
 cd /tmp
 
