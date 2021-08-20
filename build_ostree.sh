@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Installing dracut and ostree..."
+echo "Building ostree..."
 
 # From https://github.com/beagleboard/image-builder/blob/master/scripts/chroot.sh
 chroot_mount () {
@@ -68,34 +68,26 @@ chroot_umount () {
 }
 
 cat > "${BUILDDIR}/chroot_script.sh" <<-__EOF__
+sed -i "s/^#deb-src/deb-src/" /etc/apt/sources.list
 apt-get update
 apt-get install -y dracut git
-
-# install ostree and it's dependencies
-# CAREFUL - we're building from source
-# so dependencies may have changed since
-# current debian version of ostree
-apt-get install -y ostree
-
-# remove ostree so only dependencies are left
-apt-get purge -y ostree libostree-1-1
+apt-get install -y build-essential
+apt-get build-dep -y ostree
 
 cd /tmp
 
-wget https://github.com/PocketNC/ostree/releases/download/test5/ostree.tar.gz
-tar xzf ostree.tar.gz
-cd ostree_install
-cp -r * /
+git clone https://github.com/PocketNC/ostree.git
+cd ostree
+git submodule update --init
+env NOCONFIGURE=1 ./autogen.sh
+./configure --with-dracut --prefix /usr
 
-dracut --force --add ostree /boot/initrd.img-$KERNEL_VERSION $KERNEL_VERSION
+mkdir -p /tmp/ostree_install
+make install DESTDIR=/tmp/ostree_install
+cd ..
+rm -rf ostree
 
-rm -rf /usr/etc
-
-rm /usr/bin/qemu-arm-static
-rm /etc/resolv.conf
-ln -s  /run/connman/resolv.conf /etc/resolv.conf
-
-apt-get clean
+tar czf ostree.tar.gz ostree_install
 
 rm /chroot_script.sh
 
@@ -113,3 +105,5 @@ cp --remove-destination /etc/resolv.conf ${BUILDDIR}/etc/resolv.conf
 chroot_mount
 chroot ${BUILDDIR} qemu-arm-static /bin/bash -e /chroot_script.sh
 chroot_umount
+
+cp ${BUILDDIR}/tmp/ostree.tar.gz /host
