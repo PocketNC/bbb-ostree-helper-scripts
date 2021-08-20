@@ -30,6 +30,13 @@ cd ${BUILDDIR}
 # This is run at boot in /opt/scripts/boot/am335x_evm.sh, but errors due to read-only filesystem, doing it now while we can
 sed -i -e 's:connmand -n:connmand -n --nodnsproxy:g' lib/systemd/system/connman.service || true
 
+# /opt/scripts/tools/grow_partition.sh writes to /resizerootfs which is now a readonly location, so let's write to /var/resizerootfs
+# We submitted a pull request to change these paths: (https://github.com/RobertCNelson/boot-scripts/pull/125)
+# We'll want to take these lines out when those are merged:
+sed -i 's:/resizerootfs:/var/resizerootfs:g' opt/scripts/tools/grow_partition.sh
+sed -i 's:/resizerootfs:/var/resizerootfs:g' opt/scripts/boot/generic-startup.sh
+sed -i 's:/resizerootfs:/var/resizerootfs:g' opt/scripts/boot/legacy/old_resize.sh
+
 mv opt usr
 ln -s usr/opt opt
 
