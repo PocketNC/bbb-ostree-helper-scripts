@@ -33,9 +33,23 @@ sed -i -e 's:connmand -n:connmand -n --nodnsproxy:g' lib/systemd/system/connman.
 # /opt/scripts/tools/grow_partition.sh writes to /resizerootfs which is now a readonly location, so let's write to /var/resizerootfs
 # We submitted a pull request to change these paths: (https://github.com/RobertCNelson/boot-scripts/pull/125)
 # We'll want to take these lines out when those are merged:
-sed -i 's:/resizerootfs:/var/resizerootfs:g' opt/scripts/tools/grow_partition.sh
-sed -i 's:/resizerootfs:/var/resizerootfs:g' opt/scripts/boot/generic-startup.sh
-sed -i 's:/resizerootfs:/var/resizerootfs:g' opt/scripts/boot/legacy/old_resize.sh
+if [ -f opt/scripts/tools/grow_partition.sh ]; then
+  if [ $(grep "/var/resizerootfs" opt/scripts/tools/grow_partition.sh) ]; then
+    echo "Don't need to replace /resizerootfs with /var/resizerootfs in grow_partition.sh"
+  else
+    echo "Replacing /resizerootfs with /var/resizerootfs in grow_partition.sh"
+    sed -i 's:/resizerootfs:/var/resizerootfs:g' opt/scripts/tools/grow_partition.sh
+  fi
+fi
+
+if [ -f opt/scripts/boot/generic-startup.sh ]; then
+  if [ $(grep "/var/resizerootfs" opt/scripts/boot/generic-startup.sh) ]; then
+    echo "Don't need to replace /resizerootfs with /var/resizerootfs in generic-startup.sh"
+  else
+    echo "Replacing /resizerootfs with /var/resizerootfs in generic-startup.sh"
+    sed -i 's:/resizerootfs:/var/resizerootfs:g' opt/scripts/boot/generic-startup.sh
+  fi
+fi
 
 mv opt usr
 ln -s usr/opt opt
@@ -75,7 +89,6 @@ cat > usr/lib/tmpfiles.d/ostree.conf <<EOF
 L /var/home - - - - ../sysroot/home
 d /sysroot/home 0755 root root -
 d /sysroot/root 0700 root root -
-d /var/local 0755 root root -
 d /run/media 0755 root root -
 L /var/lib/dpkg - - - - ../../usr/share/dpkg/database
 EOF
@@ -84,11 +97,10 @@ mkdir -p sysroot
 mv home /tmp/home
 mv var /tmp/var
 mkdir var
-rm -rf {root,media} usr/local
+rm -rf {root,media} 
 ln -s /sysroot/ostree ostree
 ln -s /sysroot/home home
 ln -s /sysroot/root root
-ln -s /var/local usr/local
 ln -s /run/media media
 
 ln -s ../lib boot/lib
