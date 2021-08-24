@@ -34,7 +34,8 @@ sed -i -e 's:connmand -n:connmand -n --nodnsproxy:g' lib/systemd/system/connman.
 # We submitted a pull request to change these paths: (https://github.com/RobertCNelson/boot-scripts/pull/125)
 # We'll want to take these lines out when those are merged:
 if [ -f opt/scripts/tools/grow_partition.sh ]; then
-  if [ $(grep "/var/resizerootfs" opt/scripts/tools/grow_partition.sh) ]; then
+  HAS_VAR=$(grep "/var/resizerootfs" opt/scripts/tools/grow_partition.sh)
+  if [ -n "${HAS_VAR}" ]; then
     echo "Don't need to replace /resizerootfs with /var/resizerootfs in grow_partition.sh"
   else
     echo "Replacing /resizerootfs with /var/resizerootfs in grow_partition.sh"
@@ -43,7 +44,8 @@ if [ -f opt/scripts/tools/grow_partition.sh ]; then
 fi
 
 if [ -f opt/scripts/boot/generic-startup.sh ]; then
-  if [ $(grep "/var/resizerootfs" opt/scripts/boot/generic-startup.sh) ]; then
+  HAS_VAR=$(grep "/var/resizerootfs" opt/scripts/boot/generic-startup.sh)
+  if [ -n "${HAS_VAR}" ]; then
     echo "Don't need to replace /resizerootfs with /var/resizerootfs in generic-startup.sh"
   else
     echo "Replacing /resizerootfs with /var/resizerootfs in generic-startup.sh"
