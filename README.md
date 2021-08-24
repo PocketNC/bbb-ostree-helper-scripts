@@ -47,6 +47,10 @@ in the current directory. A repo directory will also be created if necessary in 
 repo is an ostree archive repository that can be served with a static http server to be a remote. If repo already exists, a new commit will
 be created in it.
 
+If you'd like to simply download an ostree client image to get started, you can try this one:
+
+    curl -L -O https://github.com/PocketNC/bbb-ostree-helper-scripts/releases/download/demo-files/bone-debian-10.4-iot-armhf-2020-06-01-4gb-ostree.img.xz
+
 Flash the bone-debian-10.4-iot-armhf-2020-06-01-4gb-ostree.img file to a microSD card, then insert it into a Beaglebone and boot it up.
 It should largely behave the same as the bone-debian-10.4-iot-armhf-2020-06-01-4gb.img file. The difference is the rootfs is configured
 to be managed by ostree. There is a /sysroot directory that represents the real rootfs of the filesystem. The / directory is actually
@@ -60,8 +64,9 @@ Below, we'll go through the steps on how to add a remote and update to atomicall
 First, you'll need to sync your repo folder with a static webserver that your client Beaglebone can reach. Use something like
 `rsync` or `aws s3 sync`.
 
-On your client Beaglebone (the one you flashed with bone-debian-10.4-iot-armhf-2020-06-01-4gb-ostree.img), run the following commands 
-(http://pocketnc-ostree-test-repo.s3-website-us-east-1.amazonaws.com should be replaced with the URL of your static webserver that is serving the repo directory):
+On your client Beaglebone (the one you flashed with bone-debian-10.4-iot-armhf-2020-06-01-4gb-ostree.img), run the commands below.
+http://pocketnc-ostree-test-repo.s3-website-us-east-1.amazonaws.com should be replaced with the URL of your static webserver that is serving the repo directory,
+but it may work to leave it as is (it could go away at any time):
 
     # On Beaglebone client
     export REMOTE=debian
