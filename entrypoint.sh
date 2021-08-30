@@ -1,8 +1,8 @@
 #!/bin/bash
 
 export INPUT_IMG=/host/$1
-export IMG=/tmp/$(basename $1)
-export OUTPUT_IMG=/host/$(basename $1 .img)-ostree.img
+export IMG=/tmp/$(basename $INPUT_IMG)
+export OUTPUT_IMG=/host/$(basename $INPUT_IMG .img)-ostree.img
 
 . /host/prepare_builddir.sh
 . /host/install_dracut_and_ostree.sh
