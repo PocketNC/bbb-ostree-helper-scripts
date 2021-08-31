@@ -60,6 +60,14 @@ cd /tmp
 mv /tmp/home/* ${BUILDDIR}/home
 mv /tmp/var/* ${BUILDDIR}/ostree/deploy/${OSTREE_OS}/var
 mkdir ${BUILDDIR}/var
+mkdir -p ${BUILDDIR} /run/media/usb0
+mkdir -p ${BUILDDIR} /run/media/usb1
+mkdir -p ${BUILDDIR} /run/media/usb2
+mkdir -p ${BUILDDIR} /run/media/usb3
+mkdir -p ${BUILDDIR} /run/media/usb4
+mkdir -p ${BUILDDIR} /run/media/usb5
+mkdir -p ${BUILDDIR} /run/media/usb6
+mkdir -p ${BUILDDIR} /run/media/usb7
 #mv /tmp/etc ${BUILDDIR}
 
 #mkdir /tmp/ostree_rootfs

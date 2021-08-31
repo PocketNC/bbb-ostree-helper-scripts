@@ -25,5 +25,7 @@ sync
 kpartx -d $LOOP_DEV
 losetup -d $LOOP_DEV
 
+echo "Copying ${IMG} to ${OUTPUT_IMG}..."
 cp ${IMG} ${OUTPUT_IMG}
+echo "Done"
 #xz ${OUTPUT_IMG}
