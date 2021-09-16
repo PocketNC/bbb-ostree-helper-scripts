@@ -86,6 +86,9 @@ wget https://github.com/PocketNC/ostree/releases/download/test5/ostree.tar.gz
 tar xzf ostree.tar.gz
 cd ostree_install
 cp -r * /
+cd ..
+rm -r ostree_install
+rm ostree.tar.gz
 
 dracut --force --add ostree /boot/initrd.img-$KERNEL_VERSION $KERNEL_VERSION
 
