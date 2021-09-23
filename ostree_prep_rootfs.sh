@@ -20,6 +20,11 @@ if [ ! -n "${OSTREE_SUBJECT}" ]; then
   exit 1
 fi
 
+if [ ! -n "${OSTREE_VERSION}" ]; then
+  echo "\$OSTREE_VERSION must be defined"
+  exit 1
+fi
+
 cd /tmp
 
 #mkdir /tmp/original
@@ -163,7 +168,7 @@ REPO=/host/repo
 if [ ! -d "$REPO" ]; then
   ostree --repo="$REPO" init --mode=archive-z2
 fi
-ostree commit --repo="$REPO" --branch="${OSTREE_BRANCH}" --subject="${OSTREE_SUBJECT}" --skip-if-unchanged --table-output "${BUILDDIR}"
+ostree commit --repo="$REPO" --branch="${OSTREE_BRANCH}" --subject="${OSTREE_SUBJECT}" --skip-if-unchanged --table-output --add-metadata-string="version=${OSTREE_VERSION}" "${BUILDDIR}"
 ostree summary --repo="$REPO" --update
 
 # Remove rootfs so ostree_client_setup.sh can replace them 
