@@ -10,7 +10,7 @@ OSTREE_SYSROOT=${BUILDDIR}
 #OSTREE_URL=https://www.example.com
 OSTREE_BRANCH_DEPLOY=${OSTREE_BRANCH}
 OSTREE_REPODIR=/host/repo
-OSTREE_OS=debian
+OSTREE_OS=${OSTREE_OS:=debian}
 REPOPATH=${OSTREE_SYSROOT}/ostree/repo
 BOOT=${OSTREE_SYSROOT}/boot
 
@@ -38,7 +38,7 @@ ostree --repo="${REPOPATH}" config set sysroot.bootloader uboot
 
 uuid=$(uuid)
 kargs=(--karg=root=UUID=${uuid} --karg=rw --karg=splash --karg=plymouth.ignore-serial-consoles --karg=quiet)
-ostree admin --sysroot="${OSTREE_SYSROOT}" deploy --os=${OSTREE_OS} "${kargs[@]}" ${OSTREE_OS}:${OSTREE_BRANCH_DEPLOY}
+ostree admin --sysroot="${OSTREE_SYSROOT}" deploy --os=${OSTREE_OS} "${kargs[@]}" ${OSTREE_BRANCH_DEPLOY}
 
 # Once these are setup, they shouldn't need to change
 cd $BUILDDIR/boot
