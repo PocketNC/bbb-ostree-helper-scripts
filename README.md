@@ -33,10 +33,10 @@ Work in progress...
     docker pull pocketnc/build-bbb-ostree-image
 
     # specify that image on the docker run command, we'll start with the first
-    docker run -ti --rm --privileged --env OSTREE_BRANCH="bb.org/testing/2020-06-01/buster-iot" --env OSTREE_SUBJECT="bone-debian-10.4-iot-armhf-2020-06-01-4gb" -v $PWD:/host pocketnc/build-bbb-ostree-image bone-debian-10.4-iot-armhf-2020-06-01-4gb.img
+    docker run -ti --rm --privileged --env OSTREE_BRANCH="bb.org/testing/2020-06-01/buster-iot" --env OSTREE_SUBJECT="bone-debian-10.4-iot-armhf-2020-06-01-4gb"  --env OSTREE_VERSION=0.0.1 -v $PWD:/host pocketnc/build-bbb-ostree-image bone-debian-10.4-iot-armhf-2020-06-01-4gb.img
 
     # specify another image on the docker run command
-    docker run -ti --rm --privileged --env OSTREE_BRANCH="bb.org/testing/2021-08-23/buster-iot" --env OSTREE_SUBJECT="bone-debian-10.10-iot-armhf-2021-08-23-4gb" -v $PWD:/host pocketnc/build-bbb-ostree-image bone-debian-10.10-iot-armhf-2021-08-23-4gb.img
+    docker run -ti --rm --privileged --env OSTREE_BRANCH="bb.org/testing/2021-08-23/buster-iot" --env OSTREE_SUBJECT="bone-debian-10.10-iot-armhf-2021-08-23-4gb"  --env OSTREE_VERSION=0.0.2 -v $PWD:/host pocketnc/build-bbb-ostree-image bone-debian-10.10-iot-armhf-2021-08-23-4gb.img
 
 Note, you may be prompted with questions from console-setup. With the `-ti` option specified on the `docker run` command, you should
 be able to manually answer the questions, but I'm not sure the best way around this for a fully automated solution. If anyone knows
