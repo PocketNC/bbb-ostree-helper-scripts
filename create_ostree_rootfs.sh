@@ -58,7 +58,9 @@ ln -s boot/loader/lib
 cd /tmp
 
 mv /tmp/home/* ${BUILDDIR}/home
+rm -r /tmp/home
 mv /tmp/var/* ${BUILDDIR}/ostree/deploy/${OSTREE_OS}/var
+rm -r /tmp/var
 mkdir ${BUILDDIR}/var
 mkdir -p ${BUILDDIR} /run/media/usb0
 mkdir -p ${BUILDDIR} /run/media/usb1
