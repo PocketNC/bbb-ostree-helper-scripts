@@ -25,33 +25,10 @@ if [ ! -n "${OSTREE_VERSION}" ]; then
   exit 1
 fi
 
-cd /tmp
-
-#mkdir /tmp/original
-#cp -r ${BUILDDIR}/* /tmp/original
-
 cd ${BUILDDIR}
 
 mv opt usr
 ln -s usr/opt opt
-
-mv bin/* usr/bin
-rm -r bin
-ln -s usr/bin bin
-
-mv sbin/* usr/sbin/
-rm -r sbin
-ln -s usr/sbin sbin
-
-#mkdir -p usr/lib/arm-linux-gnueabihf
-#mkdir -p usr/lib/systemd
-#mv lib/arm-linux-gnueabihf/* usr/lib/arm-linux-gnueabihf/
-#mv lib/systemd/* usr/lib/systemd/
-#rm -r lib/arm-linux-gnueabihf
-#rm -r lib/systemd
-#mv lib/* usr/lib/
-#rm -r lib
-#ln -s usr/lib lib
 
 rm -rf dev
 mkdir dev
