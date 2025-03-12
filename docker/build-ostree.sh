@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "deb-src https://deb.debian.org/debian buster main non-free contrib" >> /etc/apt/sources.list
+echo "deb-src https://deb.debian.org/debian bookworm main contrib non-free non-free-firmware" >> /etc/apt/sources.list
 apt-get update
 
 apt-get -y install build-essential 
