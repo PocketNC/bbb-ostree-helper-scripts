@@ -12,6 +12,10 @@ fi
 cp $INPUT_IMG $IMG
 
 export LOOP_DEV=$(losetup -f)
+if [ ! -e ${LOOP_DEV} ]; then
+  mknod ${LOOP_DEV} b 7 0
+fi
+
 export LOOP_NUM=$(echo ${LOOP_DEV} | awk -F'/' '{print $3}')
 losetup $LOOP_DEV $IMG
 kpartx -av $LOOP_DEV
