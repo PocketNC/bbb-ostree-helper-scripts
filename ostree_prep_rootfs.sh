@@ -43,15 +43,15 @@ mv sbin/* usr/sbin/
 rm -r sbin
 ln -s usr/sbin sbin
 
-mkdir -p usr/lib/arm-linux-gnueabihf
-mkdir -p usr/lib/systemd
-mv lib/arm-linux-gnueabihf/* usr/lib/arm-linux-gnueabihf/
-mv lib/systemd/* usr/lib/systemd/
-rm -r lib/arm-linux-gnueabihf
-rm -r lib/systemd
-mv lib/* usr/lib/
-rm -r lib
-ln -s usr/lib lib
+#mkdir -p usr/lib/arm-linux-gnueabihf
+#mkdir -p usr/lib/systemd
+#mv lib/arm-linux-gnueabihf/* usr/lib/arm-linux-gnueabihf/
+#mv lib/systemd/* usr/lib/systemd/
+#rm -r lib/arm-linux-gnueabihf
+#rm -r lib/systemd
+#mv lib/* usr/lib/
+#rm -r lib
+#ln -s usr/lib lib
 
 rm -rf dev
 mkdir dev
@@ -59,7 +59,8 @@ mkdir dev
 sed -i -e 's|DHOME=/home|DHOME=/sysroot/home|g' etc/adduser.conf
 sed -i -e 's|DHOME=/home|DHOME=/sysroot/home|g' etc/default/useradd
 touch etc/machine-id
-mv etc usr
+rsync -av etc/ usr/etc/
+rm -rf etc
 
 mkdir -p usr/share/dpkg
 
