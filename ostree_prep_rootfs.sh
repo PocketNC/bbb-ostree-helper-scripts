@@ -36,8 +36,7 @@ mkdir dev
 sed -i -e 's|DHOME=/home|DHOME=/sysroot/home|g' etc/adduser.conf
 sed -i -e 's|DHOME=/home|DHOME=/sysroot/home|g' etc/default/useradd
 touch etc/machine-id
-rsync -av etc/ usr/etc/
-rm -rf etc
+mv etc usr
 
 mkdir -p usr/share/dpkg
 

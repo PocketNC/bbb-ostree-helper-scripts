@@ -68,35 +68,10 @@ chroot_umount () {
 }
 
 cat > "${BUILDDIR}/chroot_script.sh" <<-__EOF__
-apt-get update
-apt-get install -y dracut git
-
-# install ostree and it's dependencies
-# CAREFUL - we're building from source
-# so dependencies may have changed since
-# current debian version of ostree
-apt-get install -y ostree
-
-# remove ostree so only dependencies are left
-apt-get purge -y ostree libostree-1-1
-
-cd /tmp
-
-wget https://github.com/PocketNC/ostree/releases/download/test5/ostree.tar.gz
-tar xzf ostree.tar.gz
-cd ostree_install
-cp -r * /
-cd ..
-rm -r ostree_install
-rm ostree.tar.gz
-
 dracut --force --add ostree /boot/initrd.img-$KERNEL_VERSION $KERNEL_VERSION
 
 rm -rf /usr/etc
-
-rm /usr/bin/qemu-arm-static
 rm /etc/resolv.conf
-ln -s  /run/connman/resolv.conf /etc/resolv.conf
 
 apt-get clean
 
